@@ -16,7 +16,7 @@
   <link rel="preload" href="assets/fonts/cormorant-garamond-viet.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/be-vietnam-pro-400-viet.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/images/hero-espresso.webp" as="image" type="image/webp">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260905-1">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260905-5">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -66,7 +66,14 @@
     </nav>
     <div class="header-actions">
       <button class="sound-toggle" type="button" aria-pressed="false" aria-label="Bật nhạc nền">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2-3.74v7.48a4.5 4.5 0 0 0 2-3.74Z"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path class="sound-toggle__speaker" d="M3 9v6h4l5 4V5L7 9H3Z"/>
+          <g class="sound-toggle__waves">
+            <path class="sound-toggle__wave sound-toggle__wave--near" d="M15 8a6 6 0 0 1 0 8"/>
+            <path class="sound-toggle__wave sound-toggle__wave--far" d="M18 5a10 10 0 0 1 0 14"/>
+          </g>
+          <path class="sound-toggle__mute" d="m16 9 5 6m0-6-5 6"/>
+        </svg>
         <span>Âm thanh</span>
       </button>
       <button class="cart-trigger" type="button" data-open-cart aria-label="Mở đơn hàng, 0 món">
