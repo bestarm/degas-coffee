@@ -68,7 +68,9 @@ function loadCart() {
 }
 
 function saveCart() {
-  localStorage.setItem('degas-cart', JSON.stringify(state.cart));
+  // Storage can be blocked or full; keep the in-memory cart usable.
+  try { localStorage.setItem('degas-cart', JSON.stringify(state.cart)); }
+  catch { /* The cart remains available until the page is reloaded. */ }
 }
 
 function renderFilters() {
@@ -117,8 +119,7 @@ function openProduct(id) {
     <label><input type="checkbox" name="topping" value="${topping.id}"><span>${topping.name}<b>+${money.format(topping.price)}</b></span></label>
   `).join('');
   updateProductTotal();
-  $('[data-product-dialog]').showModal();
-  document.body.classList.add('dialog-open');
+  openDialog($('[data-product-dialog]'));
 }
 
 function selectedSize() {
@@ -157,7 +158,7 @@ function addActiveProduct() {
   state.cart.push(item);
   saveCart();
   updateCartUI();
-  $('[data-product-dialog]').close();
+  closeDialog($('[data-product-dialog]'));
   showToast(`Đã thêm ${product.name} vào đơn`);
 }
 
@@ -378,22 +379,100 @@ function setupNavigation() {
   }));
 }
 
+// Older mobile browsers do not implement HTMLDialogElement.showModal.
+let fallbackDialog = null;
+let dialogOpener = null;
+let dialogBackdrop = null;
+let dialogBackground = [];
+
+function openDialog(dialog) {
+  if (typeof dialog.showModal === 'function') {
+    dialog.showModal();
+  } else {
+    dialogOpener = document.activeElement;
+    fallbackDialog = dialog;
+    dialogBackdrop = document.createElement('div');
+    dialogBackdrop.className = 'dialog-backdrop';
+    dialogBackdrop.addEventListener('click', () => closeDialog(dialog));
+    document.body.appendChild(dialogBackdrop);
+    dialog.setAttribute('open', '');
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('tabindex', '-1');
+    dialog.classList.add('dialog-fallback');
+    (dialog.querySelector('button, input, select, textarea, [tabindex="0"]') || dialog).focus();
+    dialogBackground = [...document.body.children]
+      .filter(element => element !== dialog && element !== dialogBackdrop)
+      .map(element => {
+        const previous = element.getAttribute('aria-hidden');
+        element.setAttribute('aria-hidden', 'true');
+        return [element, previous];
+      });
+  }
+  document.body.classList.add('dialog-open');
+}
+
+function closeDialog(dialog) {
+  if (dialog !== fallbackDialog) {
+    dialog.close();
+    return;
+  }
+  dialog.removeAttribute('open');
+  dialog.removeAttribute('aria-modal');
+  dialog.classList.remove('dialog-fallback');
+  dialogBackdrop.remove();
+  dialogBackground.forEach(([element, previous]) => {
+    if (previous === null) element.removeAttribute('aria-hidden');
+    else element.setAttribute('aria-hidden', previous);
+  });
+  fallbackDialog = null;
+  document.body.classList.remove('dialog-open');
+  if (dialogOpener && dialogOpener.isConnected) dialogOpener.focus();
+}
+
 function setupDialogs() {
+  document.addEventListener('focusin', event => {
+    if (fallbackDialog && !fallbackDialog.contains(event.target)) fallbackDialog.focus();
+  });
+  document.addEventListener('keydown', event => {
+    if (!fallbackDialog) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDialog(fallbackDialog);
+    } else if (event.key === 'Tab') {
+      const controls = [...fallbackDialog.querySelectorAll('button, input, select, textarea, a[href], [tabindex]')]
+        .filter(element => !element.disabled && element.tabIndex >= 0 && element.getClientRects().length);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!first) { event.preventDefault(); fallbackDialog.focus(); }
+      else if (event.shiftKey && (document.activeElement === first || document.activeElement === fallbackDialog)) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === fallbackDialog)) {
+        event.preventDefault(); first.focus();
+      }
+    }
+  });
   const productDialog = $('[data-product-dialog]');
   const cartDialog = $('[data-cart-dialog]');
   [productDialog, cartDialog].forEach(dialog => {
+    dialog.querySelectorAll('form[method="dialog"]').forEach(form => {
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        closeDialog(dialog);
+      });
+    });
     dialog.addEventListener('close', () => {
       if (!productDialog.open && !cartDialog.open) document.body.classList.remove('dialog-open');
     });
     dialog.addEventListener('click', event => {
-      if (event.target === dialog) dialog.close();
+      if (event.target === dialog) closeDialog(dialog);
     });
   });
   $$('[data-open-cart]').forEach(button => button.addEventListener('click', () => {
-    updateCartUI(); cartDialog.showModal(); document.body.classList.add('dialog-open');
+    updateCartUI(); openDialog(cartDialog);
   }));
   $('[data-close-to-menu]').addEventListener('click', () => {
-    cartDialog.close(); $('#menu').scrollIntoView({ behavior:'smooth' });
+    closeDialog(cartDialog); $('#menu').scrollIntoView({ behavior:'smooth' });
   });
 }
 
