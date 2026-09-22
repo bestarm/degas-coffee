@@ -2,6 +2,20 @@
 
 Landing page tĩnh bằng HTML, CSS và JavaScript thuần, sẵn sàng triển khai lên Cloudflare Pages.
 
+## Hình ảnh giới thiệu
+
+Degas Coffee — Art & Espresso giới thiệu câu chuyện thương hiệu, menu đồ uống và trải nghiệm cà phê tại Yên Phong, Bắc Ninh. Một vài hình ảnh minh họa được sử dụng trên website:
+
+### Espresso — cảm hứng chủ đạo
+
+![Hình ảnh espresso trên website Degas Coffee](assets/images/hero-espresso.webp)
+
+### Khám phá đồ uống
+
+| Đồ uống đặc trưng | Đồ uống mát lạnh |
+| :---: | :---: |
+| ![Hình minh họa đồ uống đặc trưng của Degas Coffee](assets/images/signature-splash.webp) | ![Hình minh họa đồ uống mát lạnh của Degas Coffee](assets/images/cold-drinks.webp) |
+
 ## Chạy cục bộ
 
 Mở `index.html` trực tiếp hoặc chạy một static server bất kỳ tại thư mục gốc.
